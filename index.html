@@ -747,28 +747,56 @@
     (function(){
       const form = document.getElementById('contactForm');
       const formStatus = document.getElementById('formStatus');
-      function validEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-      function validate(){ const n=document.getElementById('name').value.trim(); const em=document.getElementById('email').value.trim(); const m=document.getElementById('message').value.trim(); return n && em && m && validEmail(em); }
+      const formEndpoint = "https://formspree.io/f/xkgkbqqz";
 
-      form.addEventListener('submit', (ev)=>{
+      function validEmail(e){
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+      }
+
+      form.addEventListener('submit', async (ev)=>{
         ev.preventDefault();
         formStatus.textContent = '';
-        if(!validate()){ formStatus.textContent = 'Please fill required fields with a valid email.'; return; }
-        const name = encodeURIComponent(document.getElementById('name').value.trim());
-        const email = encodeURIComponent(document.getElementById('email').value.trim());
-        const subject = encodeURIComponent(document.getElementById('subject').value.trim());
-        const message = encodeURIComponent(document.getElementById('message').value.trim() + '\\n\\n— From: ' + name + ' (' + email + ')');
-        const mailto = `mailto:khutanuj09@gmail.com?subject=${subject}&body=${message}`;
-        formStatus.innerHTML = `<a href="${mailto}" class="btn" style="text-decoration:none">Open in Email App</a>`;
-      });
 
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const subject = document.getElementById('subject').value.trim();
+        const message = document.getElementById('message').value.trim();
+
+        if(!name || !email || !message || !validEmail(email)){
+          formStatus.style.color = '#f87171';
+          formStatus.textContent = '⚠️ Please fill all required fields with a valid email.';
+          return;
+        }
+
+        formStatus.style.color = 'var(--muted)';
+        formStatus.textContent = 'Sending...';
+
+        try {
+          const res = await fetch(formEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, subject, message })
+          });
+
+          if (res.ok) {
+            formStatus.style.color = '#4ade80';
+            formStatus.textContent = '✅ Message sent successfully!';
+            form.reset();
+          } else {
+            formStatus.style.color = '#f87171';
+            formStatus.textContent = '❌ Failed to send. Please try again.';
+          }
+        } catch (error) {
+          formStatus.style.color = '#f87171';
+          formStatus.textContent = '⚠️ Network error. Please try again.';
+        }
+      });
       document.getElementById('mailtoBtn').addEventListener('click', ()=>{
-        if(!validate()){ formStatus.textContent = 'Please fill required fields with a valid email.'; return; }
         const name = encodeURIComponent(document.getElementById('name').value.trim());
         const email = encodeURIComponent(document.getElementById('email').value.trim());
         const subject = encodeURIComponent(document.getElementById('subject').value.trim());
-        const message = encodeURIComponent(document.getElementById('message').value.trim() + '\\n\\n— From: ' + name + ' (' + email + ')');
-        const mailto = `mailto:khutanuj09@gmail.com?subject=${subject}&body=${message}`;
+        const message = encodeURIComponent(document.getElementById('message').value.trim());
+        const mailto = `mailto:meetb8073@gmail.com?subject=${subject}&body=${message}%0A%0A— From: ${name} (${email})`;
         window.location.href = mailto;
       });
     })();
@@ -950,4 +978,5 @@
   </script>
 </body>
 </html>
+
 
